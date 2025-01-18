@@ -1,6 +1,7 @@
 package me.bounser.nascraft.config;
 
 import de.tr7zw.changeme.nbtapi.NBT;
+import dev.lone.itemsadder.api.CustomStack;
 import me.bounser.nascraft.Nascraft;
 import me.bounser.nascraft.database.DatabaseManager;
 import me.bounser.nascraft.database.DatabaseType;
@@ -614,15 +615,24 @@ public class Config {
         if (items.contains("items." + identifier + ".item-stack"))
             itemStack = items.getSerializable("items." + identifier + ".item-stack", ItemStack.class);
 
-        if (itemStack == null)
+        if (itemStack == null) {
             try {
-                itemStack = new ItemStack(Material.getMaterial(identifier.replaceAll("\\d", "").toUpperCase()));
+                // Try to get the item from ItemsAdder
+                CustomStack customStack = CustomStack.getInstance(identifier);
+                if (customStack != null) {
+                    itemStack = customStack.getItemStack();
+                } else if (Material.getMaterial(identifier.replaceAll("\\d", "").toUpperCase()) != null) {
+                    // Fallback to default Material
+                    itemStack = new ItemStack(Material.getMaterial(identifier.replaceAll("\\d", "").toUpperCase()));
+                }
+
             } catch (IllegalArgumentException e) {
                 Nascraft.getInstance().getLogger().severe("Couldn't load item with identifier: " + identifier);
                 Nascraft.getInstance().getLogger().severe("Reason: Material " + identifier.replaceAll("\\d", "").toUpperCase() + " is not valid!");
                 Nascraft.getInstance().getLogger().severe("Does the item exist in the version of your server?");
                 Nascraft.getInstance().getPluginLoader().disablePlugin(Nascraft.getInstance());
             }
+        }
 
         for (String ignoredKey : getIgnoredKeys())
             NBT.modify(itemStack, nbt -> {
@@ -640,15 +650,24 @@ public class Config {
         if (items.contains("items." + identifier + ".childs." + childIdentifier + "item-stack"))
             itemStack = items.getSerializable("items." + identifier + ".childs." + childIdentifier + "item-stack", ItemStack.class);
 
-        if (itemStack == null)
+        if (itemStack == null) {
             try {
-                itemStack = new ItemStack(Material.getMaterial(childIdentifier.replaceAll("\\d", "").toUpperCase()));
+                // Try to get the item from ItemsAdder
+                CustomStack customStack = CustomStack.getInstance(identifier.replaceAll("\\d", "").toUpperCase());
+                System.out.println(identifier);
+                if (customStack != null) {
+                    itemStack = customStack.getItemStack();
+                } else {
+                    // Fallback to default Material
+                    itemStack = new ItemStack(Material.getMaterial(identifier.replaceAll("\\d", "").toUpperCase()));
+                }
             } catch (IllegalArgumentException e) {
                 Nascraft.getInstance().getLogger().severe("Couldn't load item with identifier: " + identifier);
                 Nascraft.getInstance().getLogger().severe("Reason: Material " + identifier.replaceAll("\\d", "").toUpperCase() + " is not valid!");
                 Nascraft.getInstance().getLogger().severe("Does the item exist in the version of your server?");
                 Nascraft.getInstance().getPluginLoader().disablePlugin(Nascraft.getInstance());
             }
+        }
 
         return itemStack;
     }
@@ -815,14 +834,15 @@ public class Config {
     }
 
     public HashMap<Material, List<Integer>> getMainMenuFillers() {
-
         HashMap<Material, List<Integer>> fills = new HashMap<>();
 
         for (String section : inventorygui.getConfigurationSection("main-menu.fillers.").getKeys(false)) {
-
-            Material material = Material.valueOf(section.toUpperCase());
-
-            fills.put(material, inventorygui.getIntegerList("main-menu.fillers." + section));
+            try {
+                Material material = Material.valueOf(section.toUpperCase());
+                fills.put(material, inventorygui.getIntegerList("main-menu.fillers." + section));
+            } catch (IllegalArgumentException e) {
+                Nascraft.getInstance().getLogger().warning("Invalid material in main-menu.fillers: " + section);
+            }
         }
 
         return fills;

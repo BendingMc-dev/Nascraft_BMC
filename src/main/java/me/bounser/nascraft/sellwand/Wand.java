@@ -111,7 +111,6 @@ public class Wand {
         }
 
         if (glim) {
-            itemMeta.addEnchant(Enchantment.UNBREAKING, 1, true);
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
 

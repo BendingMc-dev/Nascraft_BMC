@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ImagesManager {
 
@@ -42,7 +44,7 @@ public class ImagesManager {
         if (items.contains("items." + identifier + ".item-stack.type")) {
 
             imageName = items.getString("items." + identifier + ".item-stack.type").toLowerCase() + ".png";
-            imagePath = "1-21-materials/minecraft_" + imageName;
+            imagePath = "1-20-materials/minecraft_" + imageName;
 
             try (InputStream input = Nascraft.getInstance().getResource(imagePath)) {
                 if (input != null) {
@@ -59,10 +61,9 @@ public class ImagesManager {
             return image;
         }
 
-        imageName = identifier.replaceAll("\\d", "").toLowerCase() + ".png";
-        imagePath = "1-21-materials/minecraft_" + imageName;
+        imageName = identifier.replaceAll("\\d", "").replaceFirst("_t$", "").toLowerCase() + ".png";
 
-        try (InputStream input = Nascraft.getInstance().getResource(imagePath)) {
+        try (InputStream input = Nascraft.getInstance().getResource("1-20-materials/minecraft_" + imageName)) {
             if (input != null) {
                 image = ImageIO.read(input);
             } else {
@@ -72,6 +73,31 @@ public class ImagesManager {
             Nascraft.getInstance().getLogger().info("Unable to read image: " + imageName);
         } catch (IllegalArgumentException e) {
             Nascraft.getInstance().getLogger().info("Invalid argument for image: " + imageName);
+        }
+
+        if (image != null) return image;
+
+        try {
+            Path itemsAdderPath = Paths.get("plugins/ItemsAdder/contents");
+
+            File foundFile = Files.walk(itemsAdderPath)
+                    .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().equalsIgnoreCase(imageName))
+                    .map(Path::toFile)
+                    .findFirst()
+                    .orElse(null);
+
+            if (foundFile != null) {
+                Nascraft.getInstance().getLogger().info("Found image: " + foundFile.getName());
+                Files.copy(foundFile.toPath(), new File(imagePath).toPath());
+                try (InputStream input = Files.newInputStream(new File(imagePath).toPath())) {
+                    image = ImageIO.read(input);
+                    return image;
+                }
+            } else {
+                Nascraft.getInstance().getLogger().info("Image file not found in IA Dir: " + imageName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return image;

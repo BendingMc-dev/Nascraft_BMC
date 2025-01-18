@@ -12,6 +12,7 @@ import me.bounser.nascraft.commands.alert.AlertsCommand;
 import me.bounser.nascraft.commands.alert.SetAlertCommand;
 import me.bounser.nascraft.commands.discord.DiscordCommand;
 import me.bounser.nascraft.commands.portfolio.PortfolioCommand;
+import me.bounser.nascraft.config.ItemsAdderReloadListener;
 import me.bounser.nascraft.inventorygui.Portfolio.PortfolioInventory;
 import me.bounser.nascraft.commands.market.MarketCommand;
 import me.bounser.nascraft.commands.sell.SellHandCommand;
@@ -164,6 +165,8 @@ public final class Nascraft extends JavaPlugin {
             new PortfolioCommand();
             Bukkit.getPluginManager().registerEvents(new PortfolioInventory(), this);
         }
+
+        getServer().getPluginManager().registerEvents(new ItemsAdderReloadListener(), this);
 
         ItemChartReduced.load();
     }

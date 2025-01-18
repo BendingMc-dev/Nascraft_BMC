@@ -120,7 +120,7 @@ public class MarketEditorInvListener implements Listener {
                     ));
 
                 } else {
-                    enabled = new ItemStack(Material.RED_DYE);
+                    enabled = new ItemStack(Material.RED_CARPET);
 
                     metaEnabled = enabled.getItemMeta();
                     metaEnabled.setDisplayName(ChatColor.RED + "§lMARKET STOPPED");
